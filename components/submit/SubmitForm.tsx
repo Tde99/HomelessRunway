@@ -93,14 +93,21 @@ export default function SubmitForm() {
         return selectedZones.length > 0 && !!primaryLogo.file;
       case 2:
         return true;
-      case 3:
+      case 3: {
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const websiteOk = !website || /^https?:\/\/.+\..+/.test(website);
+        const phoneOk = !phone || /^\+?[\d\s()\-]{7,20}$/.test(phone);
         return !!(
           brandName &&
+          brandName.trim().length >= 2 &&
           industry &&
           contactName &&
-          email &&
-          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+          contactName.trim().length >= 2 &&
+          emailOk &&
+          websiteOk &&
+          phoneOk
         );
+      }
       case 4:
         return acks.every(Boolean);
       default:
@@ -115,6 +122,8 @@ export default function SubmitForm() {
     industry,
     contactName,
     email,
+    phone,
+    website,
     acks,
   ]);
 

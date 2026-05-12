@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { INDUSTRY_OPTIONS } from "@/lib/constants";
 
 interface StepDetailsProps {
@@ -23,6 +23,9 @@ interface StepDetailsProps {
   canAdvance: boolean;
 }
 
+const PHONE_RE = /^\+?[\d\s()\-]{7,20}$/;
+const URL_RE = /^https?:\/\/.+\..+/;
+
 export default memo(function StepDetails({
   brandName,
   website,
@@ -44,6 +47,36 @@ export default memo(function StepDetails({
   onBack,
   canAdvance,
 }: StepDetailsProps) {
+  const [attempted, setAttempted] = useState(false);
+
+  const handleNext = () => {
+    if (!canAdvance) {
+      setAttempted(true);
+      return;
+    }
+    onNext();
+  };
+
+  const brandErr =
+    attempted && !brandName.trim()
+      ? "Required"
+      : brandName && brandName.trim().length < 2
+        ? "At least 2 characters"
+        : "";
+  const industryErr = attempted && !industry ? "Required" : "";
+  const contactErr =
+    attempted && !contactName.trim()
+      ? "Required"
+      : contactName && contactName.trim().length < 2
+        ? "At least 2 characters"
+        : "";
+  const emailErr =
+    attempted && !email
+      ? "Required"
+      : email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ? "Enter a valid email address"
+        : "";
+
   return (
     <section className="sb-step" aria-labelledby="step-details-title">
       <div className="container">
@@ -64,11 +97,17 @@ export default memo(function StepDetails({
             <input
               id="brand-name"
               type="text"
-              className="sb-form-input"
+              className={`sb-form-input${brandErr ? " sb-form-error" : ""}`}
               value={brandName}
               onChange={(e) => onBrandName(e.target.value)}
               required
             />
+            {brandErr && (
+              <span className="sb-field-hint">
+                <span className="sb-field-hint-icon">!</span>
+                {brandErr}
+              </span>
+            )}
           </div>
           <div className="sb-form-field">
             <label className="sb-form-lbl" htmlFor="website">
@@ -77,10 +116,17 @@ export default memo(function StepDetails({
             <input
               id="website"
               type="url"
-              className="sb-form-input"
+              className={`sb-form-input${website && !URL_RE.test(website) ? " sb-form-error" : ""}`}
               value={website}
               onChange={(e) => onWebsite(e.target.value)}
+              placeholder="https://"
             />
+            {website && !URL_RE.test(website) && (
+              <span className="sb-field-hint">
+                <span className="sb-field-hint-icon">!</span>
+                Enter a valid URL (https://…)
+              </span>
+            )}
           </div>
           <div className="sb-form-field">
             <label className="sb-form-lbl" htmlFor="industry">
@@ -88,7 +134,7 @@ export default memo(function StepDetails({
             </label>
             <select
               id="industry"
-              className="sb-form-select"
+              className={`sb-form-select${industryErr ? " sb-form-error" : ""}`}
               value={industry}
               onChange={(e) => onIndustry(e.target.value)}
               required
@@ -100,6 +146,12 @@ export default memo(function StepDetails({
                 </option>
               ))}
             </select>
+            {industryErr && (
+              <span className="sb-field-hint">
+                <span className="sb-field-hint-icon">!</span>
+                {industryErr}
+              </span>
+            )}
           </div>
           <div className="sb-form-field">
             <label className="sb-form-lbl" htmlFor="contact-name">
@@ -108,11 +160,17 @@ export default memo(function StepDetails({
             <input
               id="contact-name"
               type="text"
-              className="sb-form-input"
+              className={`sb-form-input${contactErr ? " sb-form-error" : ""}`}
               value={contactName}
               onChange={(e) => onContactName(e.target.value)}
               required
             />
+            {contactErr && (
+              <span className="sb-field-hint">
+                <span className="sb-field-hint-icon">!</span>
+                {contactErr}
+              </span>
+            )}
           </div>
           <div className="sb-form-field">
             <label className="sb-form-lbl" htmlFor="email">
@@ -121,15 +179,15 @@ export default memo(function StepDetails({
             <input
               id="email"
               type="email"
-              className={`sb-form-input${email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? " sb-form-error" : ""}`}
+              className={`sb-form-input${emailErr ? " sb-form-error" : ""}`}
               value={email}
               onChange={(e) => onEmail(e.target.value)}
               required
             />
-            {email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
+            {emailErr && (
               <span className="sb-field-hint">
                 <span className="sb-field-hint-icon">!</span>
-                Enter a valid email address
+                {emailErr}
               </span>
             )}
           </div>
@@ -140,10 +198,16 @@ export default memo(function StepDetails({
             <input
               id="phone"
               type="tel"
-              className="sb-form-input"
+              className={`sb-form-input${phone && !PHONE_RE.test(phone) ? " sb-form-error" : ""}`}
               value={phone}
               onChange={(e) => onPhone(e.target.value)}
             />
+            {phone && !PHONE_RE.test(phone) && (
+              <span className="sb-field-hint">
+                <span className="sb-field-hint-icon">!</span>
+                Enter a valid phone number
+              </span>
+            )}
           </div>
           <div className="sb-form-field sb-form-field--full">
             <label className="sb-form-lbl" htmlFor="restrictions">
@@ -182,8 +246,7 @@ export default memo(function StepDetails({
           <button
             type="button"
             className="btn btn-primary sb-next"
-            onClick={onNext}
-            disabled={!canAdvance}
+            onClick={handleNext}
           >
             Continue
           </button>
