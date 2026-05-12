@@ -1,5 +1,4 @@
 import Image from "next/image";
-import GarmentViewer from "@/components/GarmentViewer";
 
 export default function GarmentSystem() {
   return (
@@ -11,8 +10,6 @@ export default function GarmentSystem() {
             Garment <em>System</em>
           </h2>
         </div>
-
-        <GarmentViewer />
 
         <div className="layout-grid">
           <div className="layout-visual">

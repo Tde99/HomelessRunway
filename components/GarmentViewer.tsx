@@ -10,7 +10,10 @@ export default function GarmentViewer({ onZoneToggle }: GarmentViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const initRef = useRef(false);
   const onZoneToggleRef = useRef(onZoneToggle);
-  onZoneToggleRef.current = onZoneToggle;
+
+  useEffect(() => {
+    onZoneToggleRef.current = onZoneToggle;
+  }, [onZoneToggle]);
 
   useEffect(() => {
     if (initRef.current) return;
@@ -24,6 +27,9 @@ export default function GarmentViewer({ onZoneToggle }: GarmentViewerProps) {
         );
         await loadScript(
           "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js",
+        );
+        await loadScript(
+          "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js",
         );
       }
       initGarment3d(onZoneToggleRef);
@@ -239,11 +245,12 @@ function initGarment3d(
 
   const renderer = new T.WebGLRenderer({
     canvas,
-    antialias: true,
+    antialias: window.devicePixelRatio < 2,
     alpha: false,
+    powerPreference: "high-performance",
   });
   renderer.setSize(W, H);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.outputEncoding = T.sRGBEncoding;
   renderer.shadowMap.enabled = true;
   renderer.physicallyCorrectLights = true;
@@ -289,7 +296,12 @@ function initGarment3d(
 
   // Build shirt
   if (T.GLTFLoader) {
+    const dracoLoader = new T.DRACOLoader();
+    dracoLoader.setDecoderPath(
+      "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/",
+    );
     const loader = new T.GLTFLoader();
+    loader.setDRACOLoader(dracoLoader);
     loader.load(
       "/models/tshirt1.glb",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -532,6 +544,10 @@ function initGarment3d(
 
   // Animate
   function animate() {
+    if (!canvas || !canvas.isConnected) {
+      renderer.dispose();
+      return;
+    }
     requestAnimationFrame(animate);
     rotY += (targetRotY - rotY) * 0.1;
     rotX += (targetRotX - rotX) * 0.1;
