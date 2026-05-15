@@ -10,6 +10,8 @@ import {
 } from "react";
 import Link from "next/link";
 import { PACKAGES, ZONE_DEFS, PACKAGE_ZONE_MAP } from "@/lib/constants";
+import { resizeImage } from "@/lib/resizeImage";
+import type { GarmentViewerHandle } from "@/components/GarmentViewer";
 import StepPackage from "./StepPackage";
 import StepPlacement from "./StepPlacement";
 import StepProduct from "./StepProduct";
@@ -55,6 +57,7 @@ export default function SubmitForm() {
   const [logos, setLogos] = useState<LogoState[]>([]);
   const [activeLogoId, setActiveLogoId] = useState<string>("");
   const logoRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const garmentRef = useRef<GarmentViewerHandle>(null);
 
   // Step 3 — review product
   const [reviewNotes, setReviewNotes] = useState("");
@@ -274,6 +277,21 @@ export default function SubmitForm() {
     setSendError("");
 
     try {
+      // Resize logo images to base64
+      const logoImages: string[] = await Promise.all(
+        logos.map(async (l) => {
+          if (!l.preview) return "";
+          try {
+            return await resizeImage(l.preview, 400, 0.85);
+          } catch {
+            return "";
+          }
+        }),
+      );
+
+      // Capture garment screenshot
+      const garmentScreenshot = garmentRef.current?.captureScreenshot() ?? "";
+
       const res = await fetch("/api/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -286,11 +304,13 @@ export default function SubmitForm() {
           industry,
           selectedPackage,
           packagePrice: pkg?.price ?? 0,
-          logos: logos.map((l) => ({
+          logos: logos.map((l, i) => ({
             label: l.label,
             selectedZones: l.selectedZones.map(getZoneLabel),
             fileName: l.file?.name,
+            imageData: logoImages[i] || undefined,
           })),
+          garmentScreenshot: garmentScreenshot || undefined,
           restrictions,
           notes,
           reviewNotes,
@@ -487,6 +507,7 @@ export default function SubmitForm() {
           onReviewNotesChange={setReviewNotes}
           onNext={goNext}
           onBack={goBack}
+          garmentRef={garmentRef}
         />
       )}
 
