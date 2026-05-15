@@ -263,6 +263,9 @@ const GarmentViewer = forwardRef<GarmentViewerHandle, GarmentViewerProps>(
           texture.colorSpace = THREE.SRGBColorSpace;
           texture.anisotropy =
             rendererRef.current?.capabilities.getMaxAnisotropy() ?? 1;
+          // Flip horizontally — DecalGeometry mirrors the projection
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.repeat.x = -1;
           texture.needsUpdate = true;
           const material = new THREE.MeshStandardMaterial({
             map: texture,

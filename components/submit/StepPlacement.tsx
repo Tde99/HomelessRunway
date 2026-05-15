@@ -1,5 +1,6 @@
 import { memo, useCallback, ChangeEvent, useRef } from "react";
 import { ZONE_DEFS } from "@/lib/constants";
+import { rasterizeFile } from "@/lib/rasterizeFile";
 import GarmentViewer from "@/components/GarmentViewer";
 
 const MAX_LOGOS = 8;
@@ -57,7 +58,7 @@ export default memo(function StepPlacement({
 
   /** Add files dropped or selected into the logo pool */
   const addFiles = useCallback(
-    (files: FileList | File[]) => {
+    async (files: FileList | File[]) => {
       const arr = Array.from(files);
       for (const file of arr) {
         if (logos.length >= MAX_LOGOS) {
@@ -68,14 +69,17 @@ export default memo(function StepPlacement({
           alert(`"${file.name}" exceeds 10 MB limit.`);
           continue;
         }
-        const preview = URL.createObjectURL(file);
+
+        const result = await rasterizeFile(file);
+        if (!result) {
+          alert(
+            `"${file.name}" cannot be previewed in the browser. Please convert it to PNG or SVG first.`,
+          );
+          continue;
+        }
+
         const newId = `logo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-        // We call onAddLogo-style logic via onUpdateLogo on a fresh entry
-        // Actually we need addLogo to return an id... let's use a different approach:
-        // We'll call onAddLogo which creates a blank entry, but we need the file too.
-        // Better: pass the file to a new handler. But to minimize prop changes,
-        // let's use the existing onAddLogo + onUpdateLogo pattern:
-        onUpdateLogo(newId, { file, preview });
+        onUpdateLogo(newId, { file, preview: result.preview });
       }
     },
     [logos.length, onUpdateLogo],
@@ -85,8 +89,10 @@ export default memo(function StepPlacement({
     (e: ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (!files || files.length === 0) return;
-      addFiles(files);
-      e.target.value = "";
+      const input = e.target;
+      addFiles(files).finally(() => {
+        input.value = "";
+      });
     },
     [addFiles],
   );
