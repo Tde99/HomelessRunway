@@ -63,6 +63,7 @@ export default memo(function StepPlacement({
       if (logo?.preview) URL.revokeObjectURL(logo.preview);
       const preview = URL.createObjectURL(file);
       onUpdateLogo(logoId, { file, preview });
+      e.target.value = "";
     },
     [logos, onUpdateLogo],
   );
@@ -71,7 +72,7 @@ export default memo(function StepPlacement({
     (logoId: string) => {
       const logo = logos.find((l) => l.id === logoId);
       if (logo?.preview) URL.revokeObjectURL(logo.preview);
-      onUpdateLogo(logoId, { file: null, preview: "", selectedZones: [] });
+      onUpdateLogo(logoId, { file: null, preview: "" });
       // Reset input
       const ref = logoRefs.current[logoId];
       if (ref) ref.value = "";
@@ -117,13 +118,12 @@ export default memo(function StepPlacement({
           </h2>
         </div>
         <p className="sb-note">
-          Select preferred zones on the garment and upload your logo
-          <br />
+          Select preferred zones on the garment and upload your logo.
           {selectedPackage && (
             <>
               {" "}
               Package: <strong>{selectedPackage}</strong> — {placements}{" "}
-              placement{placements > 1 ? "s" : ""}
+              placement{placements > 1 ? "s" : ""}.
             </>
           )}
         </p>
@@ -135,33 +135,6 @@ export default memo(function StepPlacement({
               activeLogoId={activeLogoId}
               onZoneToggle={toggleZone}
             />
-            <p className="sb-note sb-note--sm">
-              Available Zones
-              {!activeLogo.file && (
-                <span style={{ color: "#e53e3e", marginLeft: "8px" }}>
-                  — ! Upload a logo first
-                </span>
-              )}
-            </p>
-            <div className="sb-zone-btn-row">
-              {ZONE_DEFS.map((z) => {
-                const allowed = allowedZones.includes(z.id);
-                const active = activeLogo.selectedZones.includes(z.id);
-                const hasFile = !!activeLogo.file;
-                return (
-                  <button
-                    key={z.id}
-                    type="button"
-                    className={`sb-zone-btn${active ? " is-active" : ""}${!allowed || !hasFile ? " is-disabled" : ""}`}
-                    onClick={() => toggleZone(z.id)}
-                    disabled={!allowed || !hasFile}
-                    aria-pressed={active}
-                  >
-                    {z.label}
-                  </button>
-                );
-              })}
-            </div>
             <div className="sb-zone-readout">
               <span className="sb-zone-readout-lbl">
                 Selected Zones for {activeLogo.label}
@@ -169,8 +142,27 @@ export default memo(function StepPlacement({
               <span className="sb-zone-readout-val">
                 {activeLogo.selectedZones.length > 0
                   ? activeLogo.selectedZones.map(getZoneLabel).join(", ")
-                  : "None — click a zone above"}
+                  : "None — click zones on the garment above"}
               </span>
+            </div>
+            <p className="sb-note sb-note--sm">Available Zones</p>
+            <div className="sb-zone-btn-row">
+              {ZONE_DEFS.map((z) => {
+                const allowed = allowedZones.includes(z.id);
+                const active = activeLogo.selectedZones.includes(z.id);
+                return (
+                  <button
+                    key={z.id}
+                    type="button"
+                    className={`sb-zone-btn${active ? " is-active" : ""}${!allowed ? " is-disabled" : ""}`}
+                    onClick={() => toggleZone(z.id)}
+                    disabled={!allowed}
+                    aria-pressed={active}
+                  >
+                    {z.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
