@@ -131,10 +131,13 @@ export default memo(function StepPlacement({
           <div className="sb-placement-col">
             <GarmentViewer
               logos={logos}
-              onZoneToggle={() => {}}
+              activeLogoId={activeLogoId}
+              onZoneToggle={toggleZone}
             />
             <div className="sb-zone-readout">
-              <span className="sb-zone-readout-lbl">Selected Zones for {activeLogo.label}</span>
+              <span className="sb-zone-readout-lbl">
+                Selected Zones for {activeLogo.label}
+              </span>
               <span className="sb-zone-readout-val">
                 {activeLogo.selectedZones.length > 0
                   ? activeLogo.selectedZones.map(getZoneLabel).join(", ")
