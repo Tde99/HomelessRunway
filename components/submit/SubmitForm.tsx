@@ -59,6 +59,10 @@ export default function SubmitForm() {
   const logoRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const garmentRef = useRef<GarmentViewerHandle>(null);
 
+  // Cached image data for submission
+  const [cachedGarmentScreenshot, setCachedGarmentScreenshot] = useState("");
+  const cachedLogoImages = useRef<Record<string, string>>({});
+
   // Step 3 — review product
   const [reviewNotes, setReviewNotes] = useState("");
 
@@ -133,8 +137,15 @@ export default function SubmitForm() {
   ]);
 
   const goNext = useCallback(() => {
-    if (canAdvance() && currentStep < STEPS.length - 1)
-      setCurrentStep((s) => s + 1);
+    if (!canAdvance() || currentStep >= STEPS.length - 1) return;
+
+    // Capture garment screenshot while canvas is still mounted (step 2 → 3)
+    if (currentStep === 2 && garmentRef.current) {
+      const screenshot = garmentRef.current.captureScreenshot();
+      if (screenshot) setCachedGarmentScreenshot(screenshot);
+    }
+
+    setCurrentStep((s) => s + 1);
   }, [canAdvance, currentStep]);
 
   const goBack = useCallback(() => {
@@ -174,6 +185,15 @@ export default function SubmitForm() {
     });
     // Auto-select newly added logos
     setActiveLogoId(id);
+
+    // Eagerly resize & cache the logo image when a preview is set
+    if (updates.preview) {
+      resizeImage(updates.preview, 400, 0.85)
+        .then((base64) => {
+          cachedLogoImages.current[id] = base64;
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const addLogo = useCallback(() => {
@@ -240,6 +260,7 @@ export default function SubmitForm() {
         if (filtered.length === 0) return [];
         return filtered;
       });
+      delete cachedLogoImages.current[id];
       setActiveLogoId((prevId) => {
         if (prevId === id) {
           // Pick the first logo with a file, or the first logo
@@ -277,20 +298,13 @@ export default function SubmitForm() {
     setSendError("");
 
     try {
-      // Resize logo images to base64
-      const logoImages: string[] = await Promise.all(
-        logos.map(async (l) => {
-          if (!l.preview) return "";
-          try {
-            return await resizeImage(l.preview, 400, 0.85);
-          } catch {
-            return "";
-          }
-        }),
+      // Use pre-cached logo images (resized eagerly on upload)
+      const logoImages: string[] = logos.map(
+        (l) => cachedLogoImages.current[l.id] ?? "",
       );
 
-      // Capture garment screenshot
-      const garmentScreenshot = garmentRef.current?.captureScreenshot() ?? "";
+      // Use pre-cached garment screenshot (captured at step 2 → 3)
+      const garmentScreenshot = cachedGarmentScreenshot;
 
       const res = await fetch("/api/send", {
         method: "POST",
