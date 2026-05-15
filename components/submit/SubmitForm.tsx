@@ -163,27 +163,6 @@ export default function SubmitForm() {
     setLogos((prev) => prev.map((l) => (l.id === id ? { ...l, ...updates } : l)));
   }, []);
 
-<<<<<<< HEAD
-  const toggleViewerZone = useCallback(
-    (zoneId: string, selected: boolean) => {
-      setLogos((prev) =>
-        prev.map((logo) =>
-          logo.id === activeLogoId
-            ? {
-                ...logo,
-                selectedZones: selected
-                  ? Array.from(new Set([...logo.selectedZones, zoneId]))
-                  : logo.selectedZones.filter((id) => id !== zoneId),
-              }
-            : logo,
-        ),
-      );
-    },
-    [activeLogoId],
-  );
-
-=======
->>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
   const addLogo = useCallback(() => {
     const newId = `logo-${Date.now()}`;
     setLogos((prev) => [
@@ -199,13 +178,11 @@ export default function SubmitForm() {
     setActiveLogoId(newId);
   }, []);
 
-<<<<<<< HEAD
   const removeLogo = useCallback(
     (id: string) => {
       setLogos((prev) => {
         const filtered = prev.filter((l) => l.id !== id);
         if (filtered.length === 0) {
-          // Keep at least one
           return [
             {
               id: "primary",
@@ -224,29 +201,6 @@ export default function SubmitForm() {
     },
     [activeLogoId],
   );
-=======
-  const removeLogo = useCallback((id: string) => {
-    setLogos((prev) => {
-      const filtered = prev.filter((l) => l.id !== id);
-      if (filtered.length === 0) {
-        // Keep at least one
-        return [
-          {
-            id: "primary",
-            file: null,
-            preview: "",
-            selectedZones: [],
-            label: "Primary Logo",
-          },
-        ];
-      }
-      return filtered;
-    });
-    if (activeLogoId === id) {
-      setActiveLogoId(logos.find((l) => l.id !== id)?.id || "primary");
-    }
-  }, [activeLogoId, logos]);
->>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
 
   const setActiveLogo = useCallback((id: string) => {
     setActiveLogoId(id);
@@ -479,11 +433,6 @@ export default function SubmitForm() {
           logos={logos}
           reviewNotes={reviewNotes}
           onReviewNotesChange={setReviewNotes}
-<<<<<<< HEAD
-          onViewerZoneToggle={toggleViewerZone}
-=======
-          onViewerZoneToggle={() => {}}
->>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
           onNext={goNext}
           onBack={goBack}
         />

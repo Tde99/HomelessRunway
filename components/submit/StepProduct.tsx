@@ -20,7 +20,6 @@ interface StepProductProps {
   logos: LogoState[];
   reviewNotes: string;
   onReviewNotesChange: (val: string) => void;
-  onViewerZoneToggle: (zoneId: string, selected: boolean) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -31,7 +30,6 @@ export default memo(function StepProduct({
   logos,
   reviewNotes,
   onReviewNotesChange,
-  onViewerZoneToggle,
   onNext,
   onBack,
 }: StepProductProps) {
@@ -52,7 +50,7 @@ export default memo(function StepProduct({
           <div className="sb-product-preview">
             <GarmentViewer
               logos={logos}
-              onZoneToggle={onViewerZoneToggle}
+              readOnly
             />
           </div>
 
