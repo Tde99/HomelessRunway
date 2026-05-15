@@ -2,6 +2,8 @@ import { memo, useCallback, ChangeEvent, useRef } from "react";
 import { ZONE_DEFS } from "@/lib/constants";
 import GarmentViewer from "@/components/GarmentViewer";
 
+const MAX_LOGOS = 8;
+
 function getZoneLabel(id: string): string {
   return ZONE_DEFS.find((z) => z.id === id)?.label ?? id;
 }
@@ -24,6 +26,7 @@ interface StepPlacementProps {
   onUpdateLogo: (id: string, updates: Partial<LogoState>) => void;
   onAddLogo: () => void;
   onRemoveLogo: (id: string) => void;
+  onAssignZone: (zoneId: string) => void;
   onNext: () => void;
   onBack: () => void;
   canAdvance: boolean;
@@ -39,11 +42,12 @@ export default memo(function StepPlacement({
   onUpdateLogo,
   onAddLogo,
   onRemoveLogo,
+  onAssignZone,
   onNext,
   onBack,
   canAdvance,
 }: StepPlacementProps) {
-  const logoRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeLogo = logos.find((l) => l.id === activeLogoId) || logos[0];
 
   const preventDef = useCallback((e: React.DragEvent) => {
@@ -51,60 +55,58 @@ export default memo(function StepPlacement({
     e.stopPropagation();
   }, []);
 
-  const handleFile = useCallback(
-    (logoId: string, e: ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0] ?? null;
-      if (!file) return;
-      if (file.size > 10 * 1024 * 1024) {
-        alert("File size exceeds 10 MB limit.");
-        return;
+  /** Add files dropped or selected into the logo pool */
+  const addFiles = useCallback(
+    (files: FileList | File[]) => {
+      const arr = Array.from(files);
+      for (const file of arr) {
+        if (logos.length >= MAX_LOGOS) {
+          alert(`Maximum ${MAX_LOGOS} logos allowed.`);
+          break;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`"${file.name}" exceeds 10 MB limit.`);
+          continue;
+        }
+        const preview = URL.createObjectURL(file);
+        const newId = `logo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        // We call onAddLogo-style logic via onUpdateLogo on a fresh entry
+        // Actually we need addLogo to return an id... let's use a different approach:
+        // We'll call onAddLogo which creates a blank entry, but we need the file too.
+        // Better: pass the file to a new handler. But to minimize prop changes,
+        // let's use the existing onAddLogo + onUpdateLogo pattern:
+        onUpdateLogo(newId, { file, preview });
       }
-      const logo = logos.find((l) => l.id === logoId);
-      if (logo?.preview) URL.revokeObjectURL(logo.preview);
-      const preview = URL.createObjectURL(file);
-      onUpdateLogo(logoId, { file, preview });
     },
-    [logos, onUpdateLogo],
+    [logos.length, onUpdateLogo],
   );
 
-  const clearFile = useCallback(
-    (logoId: string) => {
-      const logo = logos.find((l) => l.id === logoId);
-      if (logo?.preview) URL.revokeObjectURL(logo.preview);
-      onUpdateLogo(logoId, { file: null, preview: "", selectedZones: [] });
-      // Reset input
-      const ref = logoRefs.current[logoId];
-      if (ref) ref.value = "";
+  const handleFileInput = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+      addFiles(files);
+      e.target.value = "";
     },
-    [logos, onUpdateLogo],
+    [addFiles],
   );
 
   const handleDrop = useCallback(
-    (logoId: string, e: React.DragEvent) => {
+    (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      const file = e.dataTransfer.files[0];
-      if (!file) return;
-      if (file.size > 10 * 1024 * 1024) {
-        alert("File size exceeds 10 MB limit.");
-        return;
-      }
-      const logo = logos.find((l) => l.id === logoId);
-      if (logo?.preview) URL.revokeObjectURL(logo.preview);
-      onUpdateLogo(logoId, { file, preview: URL.createObjectURL(file) });
+      const files = e.dataTransfer.files;
+      if (!files || files.length === 0) return;
+      addFiles(files);
     },
-    [logos, onUpdateLogo],
+    [addFiles],
   );
 
-  const toggleZone = useCallback(
-    (zoneId: string) => {
-      const currentZones = activeLogo.selectedZones;
-      const newZones = currentZones.includes(zoneId)
-        ? currentZones.filter((z) => z !== zoneId)
-        : [...currentZones, zoneId];
-      onUpdateLogo(activeLogoId, { selectedZones: newZones });
-    },
-    [activeLogo, activeLogoId, onUpdateLogo],
+  /** Find which logo owns a zone (if any) */
+  const logoForZone = useCallback(
+    (zoneId: string): LogoState | undefined =>
+      logos.find((l) => l.selectedZones.includes(zoneId)),
+    [logos],
   );
 
   return (
@@ -117,11 +119,10 @@ export default memo(function StepPlacement({
           </h2>
         </div>
         <p className="sb-note">
-          Select preferred zones on the garment and upload your logo
+          Upload logos, select one, then click a zone to place it
           <br />
           {selectedPackage && (
             <>
-              {" "}
               Package: <strong>{selectedPackage}</strong> — {placements}{" "}
               placement{placements > 1 ? "s" : ""}
             </>
@@ -129,142 +130,157 @@ export default memo(function StepPlacement({
         </p>
 
         <div className="sb-placement-logo-grid">
+          {/* ── Left: 3D viewer + zones ── */}
           <div className="sb-placement-col">
             <GarmentViewer
               logos={logos}
               activeLogoId={activeLogoId}
-              onZoneToggle={toggleZone}
+              onZoneToggle={onAssignZone}
             />
+
             <p className="sb-note sb-note--sm">
               Available Zones
-              {!activeLogo.file && (
+              {!activeLogo?.file && (
                 <span style={{ color: "#e53e3e", marginLeft: "8px" }}>
-                  — ! Upload a logo first
+                  — Select a logo first
                 </span>
               )}
             </p>
+
             <div className="sb-zone-btn-row">
               {ZONE_DEFS.map((z) => {
                 const allowed = allowedZones.includes(z.id);
-                const active = activeLogo.selectedZones.includes(z.id);
-                const hasFile = !!activeLogo.file;
+                const owner = logoForZone(z.id);
+                const ownedByActive = owner?.id === activeLogoId;
+                const hasActiveLogo = !!activeLogo?.file;
                 return (
                   <button
                     key={z.id}
                     type="button"
-                    className={`sb-zone-btn${active ? " is-active" : ""}${!allowed || !hasFile ? " is-disabled" : ""}`}
-                    onClick={() => toggleZone(z.id)}
-                    disabled={!allowed || !hasFile}
-                    aria-pressed={active}
+                    className={`sb-zone-btn${ownedByActive ? " is-active" : ""}${owner && !ownedByActive ? " is-taken" : ""}${!allowed || !hasActiveLogo ? " is-disabled" : ""}`}
+                    onClick={() => onAssignZone(z.id)}
+                    disabled={!allowed || !hasActiveLogo}
+                    aria-pressed={ownedByActive}
+                    title={owner ? `Assigned to ${owner.label}` : z.label}
                   >
-                    {z.label}
+                    <span className="sb-zone-btn-label">{z.label}</span>
+                    {owner && (
+                      <span className="sb-zone-btn-owner">
+                        {owner.preview ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={owner.preview}
+                            alt=""
+                            className="sb-zone-btn-thumb"
+                          />
+                        ) : (
+                          owner.label
+                        )}
+                      </span>
+                    )}
                   </button>
                 );
               })}
             </div>
+
             <div className="sb-zone-readout">
-              <span className="sb-zone-readout-lbl">
-                Selected Zones for {activeLogo.label}
-              </span>
+              <span className="sb-zone-readout-lbl">Zone Assignments</span>
               <span className="sb-zone-readout-val">
-                {activeLogo.selectedZones.length > 0
-                  ? activeLogo.selectedZones.map(getZoneLabel).join(", ")
-                  : "None — click a zone above"}
+                {logos.some((l) => l.selectedZones.length > 0)
+                  ? logos
+                      .filter((l) => l.selectedZones.length > 0)
+                      .map(
+                        (l) =>
+                          `${l.label}: ${l.selectedZones.map(getZoneLabel).join(", ")}`,
+                      )
+                      .join(" · ")
+                  : "None — select a logo then click a zone"}
               </span>
             </div>
           </div>
 
+          {/* ── Right: centralized logo box ── */}
           <div className="sb-logo-side">
             <div className="sb-logo-side-hdr">
-              <span className="sb-logo-side-title">Logos</span>
+              <span className="sb-logo-side-title">
+                Logos ({logos.filter((l) => l.file).length}/{MAX_LOGOS})
+              </span>
               <span className="sb-logo-side-sub">
-                Transparent PNG or SVG · Max 10 MB
+                Click a logo to select it, then click a zone to place it
               </span>
             </div>
 
-            {logos.map((logo) => (
-              <div key={logo.id} className="sb-logo-item">
-                <div className="sb-logo-header">
+            {/* Logo grid */}
+            <div className="sb-logo-grid">
+              {logos
+                .filter((l) => l.file)
+                .map((logo) => (
                   <button
+                    key={logo.id}
                     type="button"
-                    className={`sb-logo-select${logo.id === activeLogoId ? " is-active" : ""}`}
+                    className={`sb-logo-thumb${logo.id === activeLogoId ? " is-selected" : ""}`}
                     onClick={() => onSetActiveLogo(logo.id)}
+                    title={logo.label}
                   >
-                    {logo.label}
-                  </button>
-                  {logos.length > 1 && (
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logo.preview}
+                      alt={logo.label}
+                      className="sb-logo-thumb-img"
+                    />
+                    <span className="sb-logo-thumb-label">{logo.label}</span>
                     <button
                       type="button"
-                      className="sb-logo-remove"
-                      onClick={() => onRemoveLogo(logo.id)}
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-                <div className="sb-upload-field">
-                  <div
-                    className="sb-upload-zone"
-                    onDragOver={preventDef}
-                    onDragEnter={preventDef}
-                    onDrop={(e) => handleDrop(logo.id, e)}
-                    onClick={() => logoRefs.current[logo.id]?.click()}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Upload ${logo.label}`}
-                  >
-                    {logo.preview ? (
-                      <div className="sb-upload-preview">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={logo.preview}
-                          alt={`${logo.label} preview`}
-                          className="sb-upload-preview-img"
-                        />
-                        <span className="sb-upload-preview-name">
-                          {logo.file?.name}
-                        </span>
-                        <button
-                          type="button"
-                          className="sb-upload-remove"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            clearFile(logo.id);
-                          }}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="sb-upload-placeholder">
-                        <span className="sb-upload-arrow">↑</span>
-                        <span className="sb-upload-placeholder-text">
-                          Drag &amp; drop or{" "}
-                          <span className="sb-upload-link">browse</span>
-                        </span>
-                        <span className="sb-upload-formats">
-                          PNG · SVG · PDF · AI · EPS
-                        </span>
-                      </div>
-                    )}
-                    <input
-                      ref={(el) => {
-                        logoRefs.current[logo.id] = el;
+                      className="sb-logo-thumb-remove"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveLogo(logo.id);
                       }}
-                      type="file"
-                      accept=".png,.svg,.pdf,.ai,.eps"
-                      className="sb-upload-input"
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) => handleFile(logo.id, e)}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+                      aria-label={`Remove ${logo.label}`}
+                    >
+                      ×
+                    </button>
+                    {logo.selectedZones.length > 0 && (
+                      <span className="sb-logo-thumb-zones">
+                        {logo.selectedZones.length} zone
+                        {logo.selectedZones.length > 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </button>
+                ))}
+            </div>
 
-            <button type="button" className="sb-add-logo" onClick={onAddLogo}>
-              + Add Another Logo
-            </button>
+            {/* Drop zone to add more logos */}
+            <div
+              className="sb-upload-zone sb-upload-zone--pool"
+              onDragOver={preventDef}
+              onDragEnter={preventDef}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              aria-label="Add logos"
+            >
+              <div className="sb-upload-placeholder">
+                <span className="sb-upload-arrow">↑</span>
+                <span className="sb-upload-placeholder-text">
+                  Drag &amp; drop or{" "}
+                  <span className="sb-upload-link">browse</span>
+                </span>
+                <span className="sb-upload-formats">
+                  PNG · SVG · PDF · AI · EPS · Max 10 MB
+                </span>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".png,.svg,.pdf,.ai,.eps"
+                multiple
+                className="sb-upload-input"
+                onClick={(e) => e.stopPropagation()}
+                onChange={handleFileInput}
+              />
+            </div>
 
             <div className="sb-logo-reqs">
               <p className="sb-logo-reqs-title">Logo Requirements</p>

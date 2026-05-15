@@ -52,16 +52,8 @@ export default function SubmitForm() {
   const [selectedPackage, setSelectedPackage] = useState<string>("");
 
   // Step 2 — zones + logos
-  const [logos, setLogos] = useState<LogoState[]>([
-    {
-      id: "primary",
-      file: null,
-      preview: "",
-      selectedZones: [],
-      label: "Primary Logo",
-    },
-  ]);
-  const [activeLogoId, setActiveLogoId] = useState<string>("primary");
+  const [logos, setLogos] = useState<LogoState[]>([]);
+  const [activeLogoId, setActiveLogoId] = useState<string>("");
   const logoRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   // Step 3 — review product
@@ -160,46 +152,102 @@ export default function SubmitForm() {
 
   /* logo handlers */
   const updateLogo = useCallback((id: string, updates: Partial<LogoState>) => {
-    setLogos((prev) => prev.map((l) => (l.id === id ? { ...l, ...updates } : l)));
+    setLogos((prev) => {
+      // If this id doesn't exist yet, create a new entry (used by StepPlacement drop handler)
+      const exists = prev.some((l) => l.id === id);
+      if (!exists) {
+        if (prev.filter((l) => l.file).length >= 8) return prev;
+        const newLogo: LogoState = {
+          id,
+          file: null,
+          preview: "",
+          selectedZones: [],
+          label: `Logo ${prev.filter((l) => l.file).length + 1}`,
+          ...updates,
+        };
+        return [...prev, newLogo];
+      }
+      return prev.map((l) => (l.id === id ? { ...l, ...updates } : l));
+    });
+    // Auto-select newly added logos
+    setActiveLogoId(id);
   }, []);
 
   const addLogo = useCallback(() => {
     const newId = `logo-${Date.now()}`;
-    setLogos((prev) => [
-      ...prev,
-      {
-        id: newId,
-        file: null,
-        preview: "",
-        selectedZones: [],
-        label: `Logo ${prev.length + 1}`,
-      },
-    ]);
+    setLogos((prev) => {
+      if (prev.filter((l) => l.file).length >= 8) return prev;
+      return [
+        ...prev,
+        {
+          id: newId,
+          file: null,
+          preview: "",
+          selectedZones: [],
+          label: `Logo ${prev.filter((l) => l.file).length + 1}`,
+        },
+      ];
+    });
     setActiveLogoId(newId);
   }, []);
+
+  /** Assign zone to the active logo (removing it from any other logo first) */
+  const assignZone = useCallback(
+    (zoneId: string) => {
+      setLogos((prev) => {
+        const active = prev.find((l) => l.id === activeLogoId);
+        if (!active || !active.file) return prev;
+
+        // If the active logo already owns this zone, unassign it
+        if (active.selectedZones.includes(zoneId)) {
+          return prev.map((l) =>
+            l.id === activeLogoId
+              ? {
+                  ...l,
+                  selectedZones: l.selectedZones.filter((z) => z !== zoneId),
+                }
+              : l,
+          );
+        }
+
+        // Remove zone from any other logo, assign to active
+        return prev.map((l) => {
+          if (l.id === activeLogoId) {
+            return { ...l, selectedZones: [...l.selectedZones, zoneId] };
+          }
+          if (l.selectedZones.includes(zoneId)) {
+            return {
+              ...l,
+              selectedZones: l.selectedZones.filter((z) => z !== zoneId),
+            };
+          }
+          return l;
+        });
+      });
+    },
+    [activeLogoId],
+  );
 
   const removeLogo = useCallback(
     (id: string) => {
       setLogos((prev) => {
+        const logo = prev.find((l) => l.id === id);
+        if (logo?.preview) URL.revokeObjectURL(logo.preview);
         const filtered = prev.filter((l) => l.id !== id);
-        if (filtered.length === 0) {
-          return [
-            {
-              id: "primary",
-              file: null,
-              preview: "",
-              selectedZones: [],
-              label: "Primary Logo",
-            },
-          ];
-        }
-        if (activeLogoId === id) {
-          setActiveLogoId(filtered[0].id);
-        }
+        if (filtered.length === 0) return [];
         return filtered;
       });
+      setActiveLogoId((prevId) => {
+        if (prevId === id) {
+          // Pick the first logo with a file, or the first logo
+          const remaining = logos.filter((l) => l.id !== id);
+          const withFile = remaining.find((l) => l.file);
+          return withFile?.id ?? remaining[0]?.id ?? "";
+        }
+        return prevId;
+      });
     },
-    [activeLogoId],
+    [logos],
   );
 
   const setActiveLogo = useCallback((id: string) => {
@@ -311,7 +359,10 @@ export default function SubmitForm() {
                 <span className="sb-review-val">
                   {logos
                     .filter((l) => l.file)
-                    .map((l) => `${l.label}: ${l.selectedZones.map(getZoneLabel).join(", ")}`)
+                    .map(
+                      (l) =>
+                        `${l.label}: ${l.selectedZones.map(getZoneLabel).join(", ")}`,
+                    )
                     .join("; ")}
                 </span>
               </div>
@@ -420,6 +471,7 @@ export default function SubmitForm() {
           onUpdateLogo={updateLogo}
           onAddLogo={addLogo}
           onRemoveLogo={removeLogo}
+          onAssignZone={assignZone}
           onNext={goNext}
           onBack={goBack}
           canAdvance={canAdvance()}
