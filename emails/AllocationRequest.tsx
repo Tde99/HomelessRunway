@@ -5,12 +5,20 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Preview,
   Section,
   Text,
   Row,
   Column,
 } from "react-email";
+
+interface LogoInfo {
+  label: string;
+  fileName: string;
+  selectedZones: string[];
+  imageUrl?: string;
+}
 
 interface AllocationRequestEmailProps {
   brandName: string;
@@ -22,6 +30,8 @@ interface AllocationRequestEmailProps {
   selectedPackage: string;
   packagePrice: number;
   selectedZones: string[];
+  logos?: LogoInfo[];
+  garmentImageUrl?: string;
   restrictions?: string;
   notes?: string;
   reviewNotes?: string;
@@ -37,6 +47,8 @@ export default function AllocationRequestEmail({
   selectedPackage = "Editorial Entry Allocation",
   packagePrice = 1000,
   selectedZones = ["Front Hero", "Back Hero"],
+  logos = [],
+  garmentImageUrl,
   restrictions,
   notes,
   reviewNotes,
@@ -82,6 +94,24 @@ export default function AllocationRequestEmail({
 
           <Hr style={hr} />
 
+          {/* Garment Preview */}
+          {garmentImageUrl && (
+            <>
+              <Section style={section}>
+                <Heading as="h2" style={h2}>
+                  Garment Preview
+                </Heading>
+                <Img
+                  src={garmentImageUrl}
+                  alt="Garment preview with logo placement"
+                  width="100%"
+                  style={garmentImage}
+                />
+              </Section>
+              <Hr style={hr} />
+            </>
+          )}
+
           {/* Placement */}
           <Section style={section}>
             <Heading as="h2" style={h2}>
@@ -93,6 +123,42 @@ export default function AllocationRequestEmail({
               </Text>
             ))}
           </Section>
+
+          {/* Logos */}
+          {logos.length > 0 && (
+            <>
+              <Hr style={hr} />
+              <Section style={section}>
+                <Heading as="h2" style={h2}>
+                  Logos ({logos.length})
+                </Heading>
+                {logos.map((logo, i) => (
+                  <Section key={i} style={logoCard}>
+                    {logo.imageUrl && (
+                      <Img
+                        src={logo.imageUrl}
+                        alt={logo.label}
+                        width="120"
+                        height="120"
+                        style={logoImage}
+                      />
+                    )}
+                    <Text style={logoLabel}>{logo.label}</Text>
+                    {logo.fileName && (
+                      <Text style={logoFile}>File: {logo.fileName}</Text>
+                    )}
+                    {logo.selectedZones.length > 0 ? (
+                      <Text style={logoZones}>
+                        Zones: {logo.selectedZones.join(", ")}
+                      </Text>
+                    ) : (
+                      <Text style={logoZones}>No zones assigned</Text>
+                    )}
+                  </Section>
+                ))}
+              </Section>
+            </>
+          )}
 
           <Hr style={hr} />
 
@@ -269,4 +335,42 @@ const footerText = {
   color: "#555555",
   fontSize: "12px",
   lineHeight: "1.5",
+};
+
+const logoCard = {
+  backgroundColor: "#111111",
+  border: "1px solid #222222",
+  borderRadius: "4px",
+  padding: "12px 16px",
+  marginBottom: "8px",
+};
+
+const logoImage = {
+  borderRadius: "4px",
+  marginBottom: "8px",
+  objectFit: "contain" as const,
+};
+
+const garmentImage = {
+  borderRadius: "6px",
+  maxWidth: "100%",
+};
+
+const logoLabel = {
+  color: "#ffffff",
+  fontSize: "14px",
+  fontWeight: "600" as const,
+  margin: "0 0 4px",
+};
+
+const logoFile = {
+  color: "#888888",
+  fontSize: "12px",
+  margin: "0 0 4px",
+};
+
+const logoZones = {
+  color: "#e0e0e0",
+  fontSize: "13px",
+  margin: "0",
 };
