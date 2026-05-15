@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { ZONE_DEFS } from "@/lib/constants";
+import GarmentViewer from "@/components/GarmentViewer";
 
 interface LogoState {
   id: string;
@@ -80,7 +81,10 @@ export default memo(function StepReview({
             <span className="sb-review-val">
               {logos
                 .filter((l) => l.file)
-                .map((l) => `${l.label}: ${l.file?.name} (${l.selectedZones.map(getZoneLabel).join(", ")})`)
+                .map(
+                  (l) =>
+                    `${l.label}: ${l.file?.name} (${l.selectedZones.map(getZoneLabel).join(", ")})`,
+                )
                 .join("; ")}
             </span>
           </div>
@@ -117,6 +121,11 @@ export default memo(function StepReview({
               </span>
             </div>
           )}
+        </div>
+
+        <div className="sb-review-preview">
+          <p className="sb-note sb-note--sm">Garment Preview</p>
+          <GarmentViewer logos={logos} readOnly />
         </div>
 
         <div className="sb-acks">
