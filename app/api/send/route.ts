@@ -74,7 +74,6 @@ export async function POST(req: Request) {
     const logoImageUrls: (string | undefined)[] = [];
 
     if (blobToken) {
-<<<<<<< HEAD
       // Folder name: slugified brand name + short date for uniqueness
       const slug = String(brandName)
         .toLowerCase()
@@ -83,9 +82,6 @@ export async function POST(req: Request) {
         .slice(0, 60);
       const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
       const folder = `allocations/${slug}-${date}`;
-=======
-      const timestamp = Date.now();
->>>>>>> e1772656e7725b17156f55e8da3b712dc5fe1315
       let totalBytes = 0;
 
       // Upload garment screenshot
@@ -95,11 +91,7 @@ export async function POST(req: Request) {
           totalBytes += result.size;
           const ext = result.mime === "image/png" ? "png" : "jpg";
           try {
-<<<<<<< HEAD
             const blob = await put(`${folder}/garment.${ext}`, result.buf, {
-=======
-            const blob = await put(`allocations/${timestamp}/garment.${ext}`, result.buf, {
->>>>>>> e1772656e7725b17156f55e8da3b712dc5fe1315
               access: "public",
               token: blobToken,
               contentType: result.mime,
@@ -121,11 +113,7 @@ export async function POST(req: Request) {
             totalBytes += result.size;
             const ext = result.mime === "image/png" ? "png" : "jpg";
             try {
-<<<<<<< HEAD
               const blob = await put(`${folder}/logo-${i}.${ext}`, result.buf, {
-=======
-              const blob = await put(`allocations/${timestamp}/logo-${i}.${ext}`, result.buf, {
->>>>>>> e1772656e7725b17156f55e8da3b712dc5fe1315
                 access: "public",
                 token: blobToken,
                 contentType: result.mime,
