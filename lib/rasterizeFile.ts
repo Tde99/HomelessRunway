@@ -103,10 +103,9 @@ export async function rasterizeFile(
     return { preview: URL.createObjectURL(file), rasterised: false };
   }
 
-  // SVG
+  // SVG — not supported; users should convert to PNG
   if (file.type === "image/svg+xml" || ext === "svg") {
-    const preview = await rasteriseSvg(file);
-    return { preview, rasterised: true };
+    return null;
   }
 
   // PDF
