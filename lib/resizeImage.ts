@@ -22,8 +22,20 @@ export function resizeImage(
       const ctx = canvas.getContext("2d");
       if (!ctx) return reject(new Error("Canvas 2D context unavailable"));
 
+      // Use PNG to preserve transparency; fall back to JPEG for photos
+      const isPng = src.startsWith("data:image/png") || src.endsWith(".png");
+      if (!isPng) {
+        // Fill white background for JPEG (avoids black canvas)
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, w, h);
+      }
+
       ctx.drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL("image/jpeg", quality));
+      resolve(
+        isPng
+          ? canvas.toDataURL("image/png")
+          : canvas.toDataURL("image/jpeg", quality),
+      );
     };
     img.onerror = () => reject(new Error("Failed to load image"));
     img.src = src;

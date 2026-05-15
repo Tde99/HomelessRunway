@@ -9,9 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@netlify/blobs": "^10.7.7",
-    "@netlify/functions": "^5.2.1",
     "@types/three": "^0.184.1",
+    "@vercel/blob": "^2.3.3",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",

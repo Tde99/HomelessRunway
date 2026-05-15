@@ -1,31 +1,21 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { getStore } from "@netlify/blobs";
+import { put } from "@vercel/blob";
 import AllocationRequestEmail from "@/emails/AllocationRequest";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-/** Convert a base64 data-URL to an ArrayBuffer. Returns null for invalid input. */
-function dataUrlToArrayBuffer(dataUrl: string): { buf: ArrayBuffer; size: number } | null {
-  const match = dataUrl.match(/^data:image\/\w+;base64,(.+)$/);
+/** Convert a base64 data-URL to a Buffer + detected MIME type. Returns null for invalid input. */
+function dataUrlToBuffer(dataUrl: string): { buf: Buffer; size: number; mime: string } | null {
+  const match = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
   if (!match) return null;
-  const nodeBuf = Buffer.from(match[1], "base64");
-  return {
-    buf: nodeBuf.buffer.slice(nodeBuf.byteOffset, nodeBuf.byteOffset + nodeBuf.byteLength),
-    size: nodeBuf.byteLength,
-  };
+  const mime = match[1];
+  const buf = Buffer.from(match[2], "base64");
+  return { buf, size: buf.byteLength, mime };
 }
 
 /** Max total upload size per request (10 MB). */
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
-
-function getAllocationStore() {
-  return getStore({
-    name: "allocations",
-    siteID: process.env.NETLIFY_SITE_ID!,
-    token: process.env.NETLIFY_API_TOKEN!,
-  });
-}
 
 export async function POST(req: Request) {
   try {
@@ -78,32 +68,28 @@ export async function POST(req: Request) {
       );
     }
 
-    // Upload images to Netlify Blobs
-    const siteId = process.env.NETLIFY_SITE_ID;
-    const apiToken = process.env.NETLIFY_API_TOKEN;
+    // Upload images to Vercel Blob
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
     let garmentImageUrl: string | undefined;
     const logoImageUrls: (string | undefined)[] = [];
 
-    if (siteId && apiToken) {
-      const store = getAllocationStore();
+    if (blobToken) {
       const timestamp = Date.now();
-      const uploadedAt = new Date().toISOString();
       let totalBytes = 0;
-
-      // Derive base URL for image serving endpoint
-      const origin = new URL(req.url).origin;
 
       // Upload garment screenshot
       if (typeof garmentScreenshot === "string" && garmentScreenshot.startsWith("data:image/")) {
-        const result = dataUrlToArrayBuffer(garmentScreenshot);
+        const result = dataUrlToBuffer(garmentScreenshot);
         if (result && result.size < MAX_UPLOAD_BYTES) {
           totalBytes += result.size;
-          const key = `${timestamp}/garment.jpg`;
+          const ext = result.mime === "image/png" ? "png" : "jpg";
           try {
-            await store.set(key, result.buf, {
-              metadata: { contentType: "image/jpeg", uploadedAt },
+            const blob = await put(`allocations/${timestamp}/garment.${ext}`, result.buf, {
+              access: "public",
+              token: blobToken,
+              contentType: result.mime,
             });
-            garmentImageUrl = `${origin}/api/images/${key}`;
+            garmentImageUrl = blob.url;
           } catch (e) {
             console.error("Blob upload (garment) failed:", e);
           }
@@ -115,15 +101,17 @@ export async function POST(req: Request) {
         const raw = Array.isArray(logos) ? logos[i] : undefined;
         const imgData = raw?.imageData;
         if (typeof imgData === "string" && imgData.startsWith("data:image/")) {
-          const result = dataUrlToArrayBuffer(imgData);
+          const result = dataUrlToBuffer(imgData);
           if (result && totalBytes + result.size < MAX_UPLOAD_BYTES) {
             totalBytes += result.size;
-            const key = `${timestamp}/logo-${i}.jpg`;
+            const ext = result.mime === "image/png" ? "png" : "jpg";
             try {
-              await store.set(key, result.buf, {
-                metadata: { contentType: "image/jpeg", uploadedAt },
+              const blob = await put(`allocations/${timestamp}/logo-${i}.${ext}`, result.buf, {
+                access: "public",
+                token: blobToken,
+                contentType: result.mime,
               });
-              logoImageUrls[i] = `${origin}/api/images/${key}`;
+              logoImageUrls[i] = blob.url;
             } catch (e) {
               console.error(`Blob upload (logo ${i}) failed:`, e);
             }
