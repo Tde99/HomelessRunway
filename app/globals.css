@@ -125,13 +125,6 @@ ul, ol { list-style: none; }
 }
 .btn-ghost:hover { border-color: var(--white); }
 
-.btn-outline {
-  background: transparent;
-  color: var(--white);
-  border: 1px solid var(--rule-light);
-}
-.btn-outline:hover { border-color: var(--white); }
-
 .btn-large { padding: 17px 44px; font-size: 12px; }
 
 .btn:active {
@@ -1173,15 +1166,6 @@ ul, ol { list-style: none; }
   background: rgba(8, 8, 6, 0.99);
 }
 
-.lightbox-trigger.motion-ready {
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  transform-origin: center center;
-}
-
-.lightbox-trigger.motion-ready:hover {
-  transform: scale(1.012);
-}
-
 .btn-primary {
   transition: opacity 0.2s ease;
 }
@@ -1581,14 +1565,6 @@ ul, ol { list-style: none; }
 
 .sb-step-tab.is-done .sb-step-num::after { content: ' ✓'; }
 
-.sb-step-div {
-  width: 20px;
-  height: 1px;
-  background: var(--rule);
-  align-self: center;
-  flex-shrink: 0;
-}
-
 /* ── Step sections ── */
 .sb-step {
   padding: var(--section-v) 0;
@@ -1756,77 +1732,6 @@ ul, ol { list-style: none; }
 /* ── Garment configurator ── */
 .sb-garment { margin-bottom: 40px; }
 
-.sb-garment-tabs {
-  display: flex;
-  border: 1px solid var(--rule);
-  border-bottom: none;
-}
-
-.sb-garment-tab {
-  flex: 1;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--dim);
-  background: var(--black-mid);
-  border: none;
-  border-right: 1px solid var(--rule);
-  padding: 13px 16px;
-  cursor: pointer;
-  transition: color var(--ease), background var(--ease);
-  text-align: center;
-}
-
-.sb-garment-tab:last-child { border-right: none; }
-.sb-garment-tab:hover { color: var(--white); background: rgba(244,242,237,0.03); }
-.sb-garment-tab.is-active {
-  color: var(--white);
-  background: var(--black);
-  position: relative;
-  z-index: 1;
-}
-
-.sb-garment-stage {
-  border: 1px solid var(--rule);
-  background: var(--black);
-  padding: 24px 24px 20px;
-}
-
-.sb-garment-panel { display: none; }
-.sb-garment-panel.is-active,
-.sb-garment-panel:not([hidden]) { display: block; }
-
-.sb-garment-svg {
-  width: 100%;
-  max-width: 440px;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-}
-
-.sb-zone {
-  cursor: pointer;
-  transition: fill 0.15s ease, stroke 0.15s ease;
-}
-
-.sb-zone:hover {
-  fill: rgba(244, 242, 237, 0.1);
-  stroke: var(--mid);
-}
-
-.sb-zone--selected {
-  fill: rgba(244, 242, 237, 0.2);
-  stroke: var(--white);
-  stroke-dasharray: none;
-  stroke-width: 2px;
-}
-
-.sb-zone:focus-visible {
-  outline: 2px solid var(--white);
-  outline-offset: 2px;
-}
-
 .sb-zone-readout {
   display: flex;
   gap: 16px;
@@ -1943,57 +1848,6 @@ ul, ol { list-style: none; }
   font-size: 10px;
   color: var(--dim);
   letter-spacing: 0.1em;
-}
-
-.sb-upload-preview {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 20px;
-  gap: 8px;
-  position: relative;
-  z-index: 3;
-}
-
-.sb-upload-preview-img {
-  max-height: 120px;
-  max-width: 100%;
-  object-fit: contain;
-  display: block;
-  background: rgba(244,242,237,0.05);
-  padding: 8px;
-}
-
-.sb-upload-preview-name {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--mid);
-  word-break: break-all;
-  line-height: 1.5;
-}
-
-.sb-upload-remove {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--dim);
-  background: none;
-  border: 1px solid var(--rule);
-  padding: 5px 12px;
-  cursor: pointer;
-  transition: color var(--ease), border-color var(--ease);
-}
-
-.sb-upload-remove:hover { color: var(--white); border-color: var(--white); }
-
-.sb-upload-hint {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--dim);
-  line-height: 1.7;
-  margin-top: 8px;
-  letter-spacing: 0.04em;
 }
 
 .sb-logo-req {
@@ -2217,57 +2071,6 @@ ul, ol { list-style: none; }
   color: var(--mid);
   line-height: 1.85;
   margin-bottom: 14px;
-}
-
-/* ═══════════════════════════════════════════
-   GARMENT 3D STAGE
-═══════════════════════════════════════════ */
-.sb-garment-stage--3d {
-  padding: 0;
-  position: relative;
-  overflow: hidden;
-  background: #080806;
-  border: 1px solid var(--rule);
-  border-top: none;
-  min-height: 400px;
-}
-
-.sb-garment-canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-  cursor: grab;
-  touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.sb-garment-canvas:active { cursor: grabbing; }
-
-.sb-drag-hint {
-  position: absolute;
-  bottom: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--dim);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 1.5s ease;
-}
-
-.sb-drag-hint.is-hidden { opacity: 0; }
-
-.sb-garment-fallback {
-  padding: 60px 40px;
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* ═══════════════════════════════════════════
@@ -2552,139 +2355,6 @@ ul, ol { list-style: none; }
   border-top: 1px solid var(--rule);
 }
 
-/* Mini view buttons */
-.sb-mini-views {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.sb-mini-view-btn {
-  flex: 1;
-  padding: 10px 0;
-  border: 1px solid var(--rule);
-  background: var(--black-mid);
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
-  text-align: center;
-}
-
-.sb-mini-view-btn.is-active {
-  border-color: var(--white);
-  color: var(--white);
-  background: rgba(244, 242, 237, 0.06);
-}
-
-.sb-mini-view-btn:hover:not(.is-active) {
-  border-color: var(--mid);
-  color: var(--mid);
-}
-
-/* ═══════════════════════════════════════════
-   CSS Garment Preview (clip-path shirt)
-═══════════════════════════════════════════ */
-.sb-css-shirt {
-  position: relative;
-  width: 100%;
-  max-width: 320px;
-  margin: 24px auto 0;
-  aspect-ratio: 3 / 4;
-}
-
-.sb-css-shirt-body {
-  position: absolute;
-  inset: 12% 10% 0;
-  background: linear-gradient(180deg, #f4f2ed 0%, #e8e5df 100%);
-  clip-path: polygon(
-    25% 0%, 35% 3%, 50% 5%, 65% 3%, 75% 0%,
-    100% 15%, 100% 100%, 0% 100%, 0% 15%
-  );
-  border-radius: 0 0 4px 4px;
-}
-
-.sb-css-shirt-collar {
-  position: absolute;
-  top: -2%;
-  left: 30%;
-  width: 40%;
-  height: 10%;
-  background: linear-gradient(180deg, #ddd8d0 0%, #f4f2ed 100%);
-  clip-path: polygon(0% 100%, 20% 0%, 50% 30%, 80% 0%, 100% 100%);
-  z-index: 2;
-}
-
-.sb-css-shirt-sleeve {
-  position: absolute;
-  width: 28%;
-  height: 30%;
-  background: linear-gradient(180deg, #ece9e3 0%, #e2ded7 100%);
-}
-
-.sb-css-shirt-sleeve--left {
-  top: 10%;
-  left: -18%;
-  clip-path: polygon(100% 0%, 100% 20%, 60% 100%, 0% 100%, 40% 0%);
-  transform: rotate(-5deg);
-}
-
-.sb-css-shirt-sleeve--right {
-  top: 10%;
-  right: -18%;
-  clip-path: polygon(0% 0%, 60% 0%, 100% 100%, 40% 100%, 0% 20%);
-  transform: rotate(5deg);
-}
-
-/* Logo overlay slots */
-.sb-logo-overlay {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed rgba(8, 8, 6, 0.3);
-  background: rgba(8, 8, 6, 0.05);
-  z-index: 3;
-  overflow: hidden;
-}
-
-.sb-zone-logo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  opacity: 0.92;
-}
-
-.sb-logo-overlay img {
-  max-width: 80%;
-  max-height: 80%;
-  object-fit: contain;
-  opacity: 0.85;
-}
-
-/* Front zones */
-.sb-logo-overlay--f1 { top: 20%; left: 8%; width: 28%; height: 18%; }
-.sb-logo-overlay--f2 { top: 20%; right: 8%; width: 28%; height: 18%; }
-.sb-logo-overlay--f3 { top: 35%; left: 15%; width: 70%; height: 28%; }
-
-/* Back zones */
-.sb-logo-overlay--b1 { top: 18%; left: 12%; width: 76%; height: 35%; }
-.sb-logo-overlay--b2 { top: 58%; left: 8%; width: 28%; height: 18%; }
-.sb-logo-overlay--b3 { top: 58%; right: 8%; width: 28%; height: 18%; }
-
-/* Sleeve zones */
-.sb-logo-overlay--s1 { top: 14%; left: -14%; width: 22%; height: 22%; }
-.sb-logo-overlay--s2 { top: 14%; right: -14%; width: 22%; height: 22%; }
-
-/* View rotation transforms */
-.sb-css-shirt--back .sb-css-shirt-body { transform: scaleX(-1); }
-.sb-css-shirt--left { transform: perspective(600px) rotateY(35deg); }
-.sb-css-shirt--right { transform: perspective(600px) rotateY(-35deg); }
-
 /* ═══════════════════════════════════════════
    RESPONSIVE — TABLET (≤1024px)
 ═══════════════════════════════════════════ */
@@ -2815,11 +2485,8 @@ ul, ol { list-style: none; }
   .sb-step-hdr-num { display: none; }
   .sb-review-row { flex-direction: column; gap: 4px; }
   .sb-review-key { min-width: unset; }
-  .sb-garment-tab { font-size: 9px; padding: 10px 10px; }
   .sb-step-nav { flex-direction: column; align-items: stretch; }
   .sb-step-nav .btn { text-align: center; }
-  .sb-garment-stage--3d { min-height: 280px; }
-  .sb-drag-hint { font-size: 9px; bottom: 48px; }
 }
 
 /* ═══════════════════════════════════════════
@@ -2891,15 +2558,4 @@ ul, ol { list-style: none; }
   }
 }
 
-/* sr-only utility */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
+
