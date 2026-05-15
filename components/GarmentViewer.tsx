@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -93,6 +93,7 @@ export default function GarmentViewer({
   const modelRef = useRef<THREE.Group | null>(null);
   const decalMeshesRef = useRef<THREE.Mesh[]>([]);
   const animIdRef = useRef<number>(0);
+  const [modelVersion, setModelVersion] = useState(0);
 
   // --- Init Three.js scene once ---
   useEffect(() => {
@@ -100,7 +101,7 @@ export default function GarmentViewer({
     if (!mount) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
+    scene.background = new THREE.Color(0x000000);
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(
@@ -117,6 +118,9 @@ export default function GarmentViewer({
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
     mount.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -127,11 +131,14 @@ export default function GarmentViewer({
     controlsRef.current = controls;
 
     // Lighting
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xc9d6ff, 0.4);
+    scene.add(hemiLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
     dirLight.position.set(300, 600, 400);
     scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x8888ff, 0.4);
+    const fillLight = new THREE.DirectionalLight(0xbfd0ff, 0.25);
     fillLight.position.set(-300, 200, -300);
     scene.add(fillLight);
 
@@ -152,6 +159,7 @@ export default function GarmentViewer({
       });
       scene.add(model);
       modelRef.current = model;
+      setModelVersion((v) => v + 1);
     });
 
     // Animate
@@ -224,9 +232,18 @@ export default function GarmentViewer({
         const hitMesh = hit.object as THREE.Mesh;
 
         const texture = new THREE.TextureLoader().load(logo.preview);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.anisotropy =
+          rendererRef.current?.capabilities.getMaxAnisotropy() ?? 1;
+        texture.needsUpdate = true;
         const material = new THREE.MeshStandardMaterial({
           map: texture,
           transparent: true,
+          metalness: 0,
+          roughness: 0.72,
+          emissiveMap: texture,
+          emissive: new THREE.Color(0xffffff),
+          emissiveIntensity: 0.08,
           depthTest: true,
           depthWrite: false,
           polygonOffset: true,
@@ -254,7 +271,7 @@ export default function GarmentViewer({
         decalMeshesRef.current.push(decalMesh);
       });
     });
-  }, [logos]);
+  }, [logos, modelVersion]);
 
   return (
     <div
