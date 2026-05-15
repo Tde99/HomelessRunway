@@ -14,8 +14,11 @@ interface LogoState {
 interface GarmentViewerProps {
   selectedZones?: string[];
   logos?: LogoState[];
+<<<<<<< HEAD
   allowedZones?: string[];
   activeZones?: string[];
+=======
+>>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
   onZoneToggle?: (zoneId: string, selected: boolean) => void;
 }
 
@@ -54,12 +57,16 @@ const ZONE_POSITIONS: Record<string, React.CSSProperties> = {
 export default function GarmentViewer({
   selectedZones = [],
   logos = [],
+<<<<<<< HEAD
   allowedZones,
   activeZones = [],
+=======
+>>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
   onZoneToggle,
 }: GarmentViewerProps) {
   const [view, setView] = useState<GarmentView>("front");
   const selected = useMemo(() => VIEW_IMAGES[view], [view]);
+<<<<<<< HEAD
   const viewZones = useMemo(
     () => ZONE_DEFS.filter((zone) => zone.side === view),
     [view],
@@ -70,6 +77,8 @@ export default function GarmentViewer({
     }
     return logos.flatMap((logo) => logo.selectedZones);
   }, [activeZones, logos]);
+=======
+>>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
   const zonesForView = useMemo(() => {
     const allZones: string[] = [];
     logos.forEach((logo) => {
@@ -107,6 +116,7 @@ export default function GarmentViewer({
           alt={selected.alt}
           style={{ width: "100%", height: "auto", display: "block" }}
         />
+<<<<<<< HEAD
         {viewZones.map((zone) => {
           const selected = selectedZoneIds.includes(zone.id);
           const allowed = !allowedZones || allowedZones.includes(zone.id);
@@ -135,6 +145,8 @@ export default function GarmentViewer({
             />
           );
         })}
+=======
+>>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
         {logos.map((logo) =>
           logo.selectedZones
             .filter((zoneId) => {

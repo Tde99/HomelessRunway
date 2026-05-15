@@ -131,12 +131,16 @@ export default memo(function StepPlacement({
           <div className="sb-placement-col">
             <GarmentViewer
               logos={logos}
+<<<<<<< HEAD
               allowedZones={allowedZones}
               activeZones={activeLogo.selectedZones}
               onZoneToggle={(zoneId, selected) => {
                 if (!allowedZones.includes(zoneId)) return;
                 toggleZone(zoneId);
               }}
+=======
+              onZoneToggle={() => {}}
+>>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
             />
             <div className="sb-zone-readout">
               <span className="sb-zone-readout-lbl">Selected Zones for {activeLogo.label}</span>
@@ -201,12 +205,16 @@ export default memo(function StepPlacement({
                     onDragOver={preventDef}
                     onDragEnter={preventDef}
                     onDrop={(e) => handleDrop(logo.id, e)}
+<<<<<<< HEAD
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         logoRefs.current[logo.id]?.click();
                       }
                     }}
+=======
+                    onClick={() => logoRefs.current[logo.id]?.click()}
+>>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
                     role="button"
                     tabIndex={0}
                     aria-label={`Upload ${logo.label}`}
