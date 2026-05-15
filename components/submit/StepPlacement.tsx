@@ -245,6 +245,7 @@ export default memo(function StepPlacement({
                       type="file"
                       accept=".png,.svg,.pdf,.ai,.eps"
                       className="sb-upload-input"
+                      onClick={(e) => e.stopPropagation()}
                       onChange={(e) => handleFile(logo.id, e)}
                     />
                   </div>

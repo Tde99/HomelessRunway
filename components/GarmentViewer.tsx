@@ -43,15 +43,15 @@ const ZONE_SNAP: Record<
     normal: new THREE.Vector3(0, 0, -1),
   },
   b1: {
-    center: new THREE.Vector3(0, 1250, 100),
+    center: new THREE.Vector3(0, 1350, 100),
     normal: new THREE.Vector3(0, 0, 1),
   },
   b2: {
-    center: new THREE.Vector3(-80, 1100, 100),
+    center: new THREE.Vector3(-70, 1100, 100),
     normal: new THREE.Vector3(0, 0, 1),
   },
   b3: {
-    center: new THREE.Vector3(80, 1100, 100),
+    center: new THREE.Vector3(70, 1100, 100),
     normal: new THREE.Vector3(0, 0, 1),
   },
   s1: {
@@ -221,9 +221,6 @@ export default function GarmentViewer({
 
         const hit = hits[0];
         const hitPoint = hit.point;
-        const hitNormal = hit
-          .face!.normal.clone()
-          .transformDirection(hit.object.matrixWorld);
         const hitMesh = hit.object as THREE.Mesh;
 
         const texture = new THREE.TextureLoader().load(logo.preview);
@@ -237,9 +234,10 @@ export default function GarmentViewer({
           side: THREE.DoubleSide,
         });
 
+        // Use the zone's fixed normal so logos always face straight out (no tilt/roll)
         const quaternion = new THREE.Quaternion().setFromUnitVectors(
           new THREE.Vector3(0, 0, 1),
-          hitNormal,
+          snap.normal,
         );
         const euler = new THREE.Euler().setFromQuaternion(quaternion);
 
