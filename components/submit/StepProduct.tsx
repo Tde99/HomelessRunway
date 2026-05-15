@@ -1,6 +1,8 @@
-import { memo } from "react";
+import { memo, type RefObject } from "react";
 import { ZONE_DEFS } from "@/lib/constants";
-import GarmentViewer from "@/components/GarmentViewer";
+import GarmentViewer, {
+  type GarmentViewerHandle,
+} from "@/components/GarmentViewer";
 
 function getZoneLabel(id: string): string {
   return ZONE_DEFS.find((z) => z.id === id)?.label ?? id;
@@ -22,6 +24,7 @@ interface StepProductProps {
   onReviewNotesChange: (val: string) => void;
   onNext: () => void;
   onBack: () => void;
+  garmentRef?: RefObject<GarmentViewerHandle | null>;
 }
 
 export default memo(function StepProduct({
@@ -32,6 +35,7 @@ export default memo(function StepProduct({
   onReviewNotesChange,
   onNext,
   onBack,
+  garmentRef,
 }: StepProductProps) {
   return (
     <section className="sb-step" aria-labelledby="step-product-title">
@@ -43,15 +47,13 @@ export default memo(function StepProduct({
           </h2>
         </div>
         <p className="sb-note">
-          Preview how your logo will appear on the garment. Use the view buttons below to switch views.
+          Preview how your logo will appear on the garment. Use the view buttons
+          below to switch views.
         </p>
 
         <div className="sb-review-product-grid">
           <div className="sb-product-preview">
-            <GarmentViewer
-              logos={logos}
-              readOnly
-            />
+            <GarmentViewer ref={garmentRef} logos={logos} readOnly />
           </div>
 
           <div className="sb-product-summary">
@@ -70,13 +72,18 @@ export default memo(function StepProduct({
               <div className="sb-review-row">
                 <span className="sb-review-key">Zones</span>
                 <span className="sb-review-val">
-                  {logos.flatMap((l) => l.selectedZones).map(getZoneLabel).join(", ")}
+                  {logos
+                    .flatMap((l) => l.selectedZones)
+                    .map(getZoneLabel)
+                    .join(", ")}
                 </span>
               </div>
               {logos.map((logo) => (
                 <div key={logo.id} className="sb-review-row">
                   <span className="sb-review-key">{logo.label}</span>
-                  <span className="sb-review-val">{logo.file?.name ?? "—"}</span>
+                  <span className="sb-review-val">
+                    {logo.file?.name ?? "—"}
+                  </span>
                 </div>
               ))}
             </div>

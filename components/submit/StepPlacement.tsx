@@ -229,17 +229,25 @@ export default memo(function StepPlacement({
                       className="sb-logo-thumb-img"
                     />
                     <span className="sb-logo-thumb-label">{logo.label}</span>
-                    <button
-                      type="button"
+                    <span
+                      role="button"
+                      tabIndex={0}
                       className="sb-logo-thumb-remove"
                       onClick={(e) => {
                         e.stopPropagation();
                         onRemoveLogo(logo.id);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onRemoveLogo(logo.id);
+                        }
+                      }}
                       aria-label={`Remove ${logo.label}`}
                     >
                       ×
-                    </button>
+                    </span>
                     {logo.selectedZones.length > 0 && (
                       <span className="sb-logo-thumb-zones">
                         {logo.selectedZones.length} zone
