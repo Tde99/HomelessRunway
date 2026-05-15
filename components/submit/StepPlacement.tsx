@@ -73,7 +73,11 @@ export default memo(function StepPlacement({
         const result = await rasterizeFile(file);
         if (!result) {
           alert(
+<<<<<<< HEAD
             `"${file.name}" cannot be previewed in the browser. Please convert it to PNG first.`,
+=======
+            `"${file.name}" cannot be previewed in the browser. Please convert it to PNG or SVG first.`,
+>>>>>>> e1772656e7725b17156f55e8da3b712dc5fe1315
           );
           continue;
         }
@@ -282,13 +286,21 @@ export default memo(function StepPlacement({
                   <span className="sb-upload-link">browse</span>
                 </span>
                 <span className="sb-upload-formats">
+<<<<<<< HEAD
                   PNG · PDF · AI · EPS · Max 10 MB
+=======
+                  PNG · SVG · PDF · AI · EPS · Max 10 MB
+>>>>>>> e1772656e7725b17156f55e8da3b712dc5fe1315
                 </span>
               </div>
               <input
                 ref={fileInputRef}
                 type="file"
+<<<<<<< HEAD
                 accept=".png,.pdf,.ai,.eps"
+=======
+                accept=".png,.svg,.pdf,.ai,.eps"
+>>>>>>> e1772656e7725b17156f55e8da3b712dc5fe1315
                 multiple
                 className="sb-upload-input"
                 onClick={(e) => e.stopPropagation()}
