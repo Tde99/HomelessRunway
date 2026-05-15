@@ -20,18 +20,4 @@ export interface ZoneDef {
   zExtra?: number;
 }
 
-export interface NavLink {
-  href: string;
-  label: string;
-  isCta?: boolean;
-}
 
-export interface AllocationFormState {
-  currentStep: number;
-  selectedPackage: string | null;
-  selectedPrice: number | null;
-  selectedLabel: string | null;
-  selectedZones: Set<string>;
-  primaryLogoName: string | null;
-  primaryLogoDataUrl: string | null;
-}
