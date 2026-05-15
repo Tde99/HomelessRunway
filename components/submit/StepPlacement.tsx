@@ -71,7 +71,7 @@ export default memo(function StepPlacement({
     (logoId: string) => {
       const logo = logos.find((l) => l.id === logoId);
       if (logo?.preview) URL.revokeObjectURL(logo.preview);
-      onUpdateLogo(logoId, { file: null, preview: "", selectedZones: [] });
+      onUpdateLogo(logoId, { file: null, preview: "" });
       // Reset input
       const ref = logoRefs.current[logoId];
       if (ref) ref.value = "";
@@ -117,13 +117,12 @@ export default memo(function StepPlacement({
           </h2>
         </div>
         <p className="sb-note">
-          Select preferred zones on the garment and upload your logo
-          <br />
+          Select preferred zones on the garment and upload your logo.
           {selectedPackage && (
             <>
               {" "}
               Package: <strong>{selectedPackage}</strong> — {placements}{" "}
-              placement{placements > 1 ? "s" : ""}
+              placement{placements > 1 ? "s" : ""}.
             </>
           )}
         </p>
@@ -132,45 +131,43 @@ export default memo(function StepPlacement({
           <div className="sb-placement-col">
             <GarmentViewer
               logos={logos}
-              activeLogoId={activeLogoId}
-              onZoneToggle={toggleZone}
+<<<<<<< HEAD
+              allowedZones={allowedZones}
+              activeZones={activeLogo.selectedZones}
+              onZoneToggle={(zoneId, selected) => {
+                if (!allowedZones.includes(zoneId)) return;
+                toggleZone(zoneId);
+              }}
+=======
+              onZoneToggle={() => {}}
+>>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
             />
-            <p className="sb-note sb-note--sm">
-              Available Zones
-              {!activeLogo.file && (
-                <span style={{ color: "#e53e3e", marginLeft: "8px" }}>
-                  — ! Upload a logo first
-                </span>
-              )}
-            </p>
+            <div className="sb-zone-readout">
+              <span className="sb-zone-readout-lbl">Selected Zones for {activeLogo.label}</span>
+              <span className="sb-zone-readout-val">
+                {activeLogo.selectedZones.length > 0
+                  ? activeLogo.selectedZones.map(getZoneLabel).join(", ")
+                  : "None — click zones on the garment above"}
+              </span>
+            </div>
+            <p className="sb-note sb-note--sm">Available Zones</p>
             <div className="sb-zone-btn-row">
               {ZONE_DEFS.map((z) => {
                 const allowed = allowedZones.includes(z.id);
                 const active = activeLogo.selectedZones.includes(z.id);
-                const hasFile = !!activeLogo.file;
                 return (
                   <button
                     key={z.id}
                     type="button"
-                    className={`sb-zone-btn${active ? " is-active" : ""}${!allowed || !hasFile ? " is-disabled" : ""}`}
+                    className={`sb-zone-btn${active ? " is-active" : ""}${!allowed ? " is-disabled" : ""}`}
                     onClick={() => toggleZone(z.id)}
-                    disabled={!allowed || !hasFile}
+                    disabled={!allowed}
                     aria-pressed={active}
                   >
                     {z.label}
                   </button>
                 );
               })}
-            </div>
-            <div className="sb-zone-readout">
-              <span className="sb-zone-readout-lbl">
-                Selected Zones for {activeLogo.label}
-              </span>
-              <span className="sb-zone-readout-val">
-                {activeLogo.selectedZones.length > 0
-                  ? activeLogo.selectedZones.map(getZoneLabel).join(", ")
-                  : "None — click a zone above"}
-              </span>
             </div>
           </div>
 
@@ -208,7 +205,16 @@ export default memo(function StepPlacement({
                     onDragOver={preventDef}
                     onDragEnter={preventDef}
                     onDrop={(e) => handleDrop(logo.id, e)}
+<<<<<<< HEAD
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        logoRefs.current[logo.id]?.click();
+                      }
+                    }}
+=======
                     onClick={() => logoRefs.current[logo.id]?.click()}
+>>>>>>> 464410e7440f1eccaa730e9c869ad1798ad60385
                     role="button"
                     tabIndex={0}
                     aria-label={`Upload ${logo.label}`}
@@ -254,7 +260,6 @@ export default memo(function StepPlacement({
                       type="file"
                       accept=".png,.svg,.pdf,.ai,.eps"
                       className="sb-upload-input"
-                      onClick={(e) => e.stopPropagation()}
                       onChange={(e) => handleFile(logo.id, e)}
                     />
                   </div>
